@@ -14,6 +14,8 @@ import argparse
 #
 #####################################################################################
 
+detected_ips = []
+
 def get_argument():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--target", dest="target", help="Target ip to scan")
@@ -27,7 +29,7 @@ def scan(ip):
     arp_request = scapy.ARP(pdst=ip)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_broadcast = broadcast/arp_request
-    answered_list = scapy.srp(arp_request_broadcast, timeout=8, verbose=False)[0]
+    answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
     
     clients_list = []
     for element in answered_list:
@@ -37,11 +39,18 @@ def scan(ip):
 
 
 def print_result(result_list):
-    print("IP\t\t\tMAC\n---------------------------------------------")
     for client in result_list:
-        print(client["ip"] + "\t\t" + client["mac"])
+	    if client['ip']  not in detected_ips:
+		    detected_ips.append(client['ip'])
+		    print(client["ip"] + "\t\t" + client["mac"])
         
 
 options = get_argument()
-scan_result = scan(options.target)
-print_result(scan_result)
+print("IP\t\t\tMAC\n---------------------------------------------")
+while True:
+	try:
+		scan_result = scan(options.target)
+		print_result(scan_result)
+	except KeyboardInterrupt:
+		print("\n[*] Detected CTRL + C ....... Quitting..")
+		break
